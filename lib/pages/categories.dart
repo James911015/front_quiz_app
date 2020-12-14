@@ -1,17 +1,31 @@
 import 'package:app_quiz/pages/quiz.dart';
+import 'package:app_quiz/services/questions.dart';
+import 'package:app_quiz/services/user_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Categories extends StatelessWidget {
-
   String selectCategory;
-  int index=0;
+  int index = 0;
+  UserService service;
+  CategoriesModel categories;
+
+  Categories() {
+    service = new UserService();
+  }
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return Scaffold(
-      appBar: AppBar(title: Text("Categories")),
+      appBar: AppBar(
+        title: Text("Categories"),
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pushNamed(context, "/");
+            }),
+      ),
       body: SizedBox(
           width: double.infinity,
           child: Padding(
@@ -27,12 +41,20 @@ class Categories extends StatelessWidget {
                       width: 100,
                       color: Colors.blue,
                       child: IconButton(
-                        icon: new Image.asset('assests/ic_ingles.png',color: Colors.white,),
+                        icon: new Image.asset(
+                          'assests/ic_ingles.png',
+                          color: Colors.white,
+                        ),
                         iconSize: 80,
                         onPressed: () {
                           selectCategory = "english";
-                          index = 0;
-                          _screemQuiz(context);
+                          service.question(selectCategory).then((value) {
+                            if (value != null) {
+                              categories = value;
+                              index = 0;
+                              _screemQuiz(context);
+                            }
+                          });
                         },
                       ),
                     ),
@@ -41,12 +63,20 @@ class Categories extends StatelessWidget {
                       width: 100,
                       color: Colors.red,
                       child: IconButton(
-                        icon: new Image.asset('assests/ic_laboratorio.png',color: Colors.white,),
+                        icon: new Image.asset(
+                          'assests/ic_laboratorio.png',
+                          color: Colors.white,
+                        ),
                         iconSize: 80,
                         onPressed: () {
                           selectCategory = "science";
-                          index= 1;
-                          _screemQuiz(context);
+                          service.question(selectCategory).then((value) {
+                            if (value != null) {
+                              categories = value;
+                              index = 0;
+                              _screemQuiz(context);
+                            }
+                          });
                         },
                       ),
                     ),
@@ -60,12 +90,20 @@ class Categories extends StatelessWidget {
                       width: 100,
                       color: Colors.green,
                       child: IconButton(
-                        icon: new Image.asset('assests/ic_libro.png',color: Colors.white,),
+                        icon: new Image.asset(
+                          'assests/ic_libro.png',
+                          color: Colors.white,
+                        ),
                         iconSize: 80,
                         onPressed: () {
-                          selectCategory = "spanish";
-                          index= 2;
-                          _screemQuiz(context);
+                          selectCategory = "history";
+                          service.question(selectCategory).then((value) {
+                            if (value != null) {
+                              categories = value;
+                              index = 0;
+                              _screemQuiz(context);
+                            }
+                          });
                         },
                       ),
                     ),
@@ -74,12 +112,20 @@ class Categories extends StatelessWidget {
                       width: 100,
                       color: Colors.purple,
                       child: IconButton(
-                        icon: new Image.asset('assests/ic_logica.png',color: Colors.white,),
+                        icon: new Image.asset(
+                          'assests/ic_logica.png',
+                          color: Colors.white,
+                        ),
                         iconSize: 80,
                         onPressed: () {
                           selectCategory = "logic";
-                          index= 3;
-                          _screemQuiz(context);
+                          service.question(selectCategory).then((value) {
+                            if (value != null) {
+                              categories = value;
+                              index = 0;
+                              _screemQuiz(context);
+                            }
+                          });
                         },
                       ),
                     ),
@@ -93,12 +139,20 @@ class Categories extends StatelessWidget {
                       width: 100,
                       color: Colors.orange,
                       child: IconButton(
-                        icon: new Image.asset('assests/ic_matematicas.png',color: Colors.white,),
+                        icon: new Image.asset(
+                          'assests/ic_matematicas.png',
+                          color: Colors.white,
+                        ),
                         iconSize: 80,
                         onPressed: () {
                           selectCategory = "math";
-                          index= 4;
-                          _screemQuiz(context);
+                          service.question(selectCategory).then((value) {
+                            if (value != null) {
+                              categories = value;
+                              index = 0;
+                              _screemQuiz(context);
+                            }
+                          });
                         },
                       ),
                     ),
@@ -107,12 +161,20 @@ class Categories extends StatelessWidget {
                       width: 100,
                       color: Colors.amber,
                       child: IconButton(
-                        icon: new Image.asset('assests/ic_religion.png',color: Colors.white,),
+                        icon: new Image.asset(
+                          'assests/ic_religion.png',
+                          color: Colors.white,
+                        ),
                         iconSize: 80,
                         onPressed: () {
                           selectCategory = "religion";
-                          index= 5;
-                          _screemQuiz(context);
+                          service.question(selectCategory).then((value) {
+                            if (value != null) {
+                              categories = value;
+                              index = 0;
+                              _screemQuiz(context);
+                            }
+                          });
                         },
                       ),
                     ),
@@ -125,7 +187,7 @@ class Categories extends StatelessWidget {
   }
 
   void _screemQuiz(BuildContext context) {
-    QuizArguments args= new QuizArguments(index: index,category: selectCategory);
-    Navigator.pushNamed(context,"/quiz",arguments:args);
+    QuizArguments args = new QuizArguments(index: index, category: selectCategory,categories: categories);
+    Navigator.pushNamed(context, "/quiz", arguments: args);
   }
 }

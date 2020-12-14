@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:app_quiz/services/questions.dart';
 import 'package:app_quiz/services/quiz_service.dart';
+import 'package:app_quiz/services/user_service.dart';
 import 'package:app_quiz/sqlite/DatabaseQuiz.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:toast/toast.dart';
-
+import 'package:http/http.dart' as http;
 import '../singleton.dart';
 
 class Quiz extends StatefulWidget {
@@ -16,8 +18,10 @@ class Quiz extends StatefulWidget {
 class QuizArguments {
   int index;
   String category;
+  CategoriesModel categories;
 
-  QuizArguments({this.index, this.category});
+
+  QuizArguments({this.index, this.category,this.categories});
 }
 
 class _Quizstate extends State<Quiz> {
@@ -27,322 +31,35 @@ class _Quizstate extends State<Quiz> {
   int countQuestions = 0;
   int categoryId;
   QuizService service;
+  UserService userService;
   int score = 0;
-  var answers = [];
+  List<Answers> answers = [];
   QuizArguments args;
-
-  var categories = [
-    {
-      "english": [
-        {
-          "question": "Question 1",
-          "answers": [
-            {"answer": "Answer 1-1", "response": true},
-            {"answer": "Answer 1-2", "response": false},
-            {"answer": "Answer 1-3", "response": false},
-            {"answer": "Answer 1-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 2",
-          "answers": [
-            {"answer": "Answer 2-1", "response": false},
-            {"answer": "Answer 2-2", "response": true},
-            {"answer": "Answer 2-3", "response": false},
-            {"answer": "Answer 2-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 3",
-          "answers": [
-            {"answer": "Answer 3-1", "response": false},
-            {"answer": "Answer 3-2", "response": false},
-            {"answer": "Answer 3-3", "response": true},
-            {"answer": "Answer 3-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 4",
-          "answers": [
-            {"answer": "Answer 4-1", "response": false},
-            {"answer": "Answer 4-2", "response": false},
-            {"answer": "Answer 4-3", "response": false},
-            {"answer": "Answer 4-4", "response": true},
-          ]
-        },
-        {
-          "question": "Question 5",
-          "answers": [
-            {"answer": "Answer 5-1", "response": true},
-            {"answer": "Answer 5-2", "response": false},
-            {"answer": "Answer 5-3", "response": false},
-            {"answer": "Answer 5-4", "response": false},
-          ]
-        }
-      ]
-    },
-    {
-      "science": [
-        {
-          "question": "Question 1",
-          "answers": [
-            {"answer": "Answer 1-1", "response": true},
-            {"answer": "Answer 1-2", "response": false},
-            {"answer": "Answer 1-3", "response": false},
-            {"answer": "Answer 1-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 2",
-          "answers": [
-            {"answer": "Answer 2-1", "response": false},
-            {"answer": "Answer 2-2", "response": true},
-            {"answer": "Answer 2-3", "response": false},
-            {"answer": "Answer 2-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 3",
-          "answers": [
-            {"answer": "Answer 3-1", "response": false},
-            {"answer": "Answer 3-2", "response": false},
-            {"answer": "Answer 3-3", "response": true},
-            {"answer": "Answer 3-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 4",
-          "answers": [
-            {"answer": "Answer 4-1", "response": false},
-            {"answer": "Answer 4-2", "response": false},
-            {"answer": "Answer 4-3", "response": false},
-            {"answer": "Answer 4-4", "response": true},
-          ]
-        },
-        {
-          "question": "Question 5",
-          "answers": [
-            {"answer": "Answer 5-1", "response": true},
-            {"answer": "Answer 5-2", "response": false},
-            {"answer": "Answer 5-3", "response": false},
-            {"answer": "Answer 5-4", "response": false},
-          ]
-        }
-      ]
-    },
-    {
-      "spanish": [
-        {
-          "question": "Question 1",
-          "answers": [
-            {"answer": "Answer 1-1", "response": true},
-            {"answer": "Answer 1-2", "response": false},
-            {"answer": "Answer 1-3", "response": false},
-            {"answer": "Answer 1-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 2",
-          "answers": [
-            {"answer": "Answer 2-1", "response": false},
-            {"answer": "Answer 2-2", "response": true},
-            {"answer": "Answer 2-3", "response": false},
-            {"answer": "Answer 2-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 3",
-          "answers": [
-            {"answer": "Answer 3-1", "response": false},
-            {"answer": "Answer 3-2", "response": false},
-            {"answer": "Answer 3-3", "response": true},
-            {"answer": "Answer 3-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 4",
-          "answers": [
-            {"answer": "Answer 4-1", "response": false},
-            {"answer": "Answer 4-2", "response": false},
-            {"answer": "Answer 4-3", "response": false},
-            {"answer": "Answer 4-4", "response": true},
-          ]
-        },
-        {
-          "question": "Question 5",
-          "answers": [
-            {"answer": "Answer 5-1", "response": true},
-            {"answer": "Answer 5-2", "response": false},
-            {"answer": "Answer 5-3", "response": false},
-            {"answer": "Answer 5-4", "response": false},
-          ]
-        }
-      ]
-    },
-    {
-      "logic": [
-        {
-          "question": "Question 1",
-          "answers": [
-            {"answer": "Answer 1-1", "response": true},
-            {"answer": "Answer 1-2", "response": false},
-            {"answer": "Answer 1-3", "response": false},
-            {"answer": "Answer 1-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 2",
-          "answers": [
-            {"answer": "Answer 2-1", "response": false},
-            {"answer": "Answer 2-2", "response": true},
-            {"answer": "Answer 2-3", "response": false},
-            {"answer": "Answer 2-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 3",
-          "answers": [
-            {"answer": "Answer 3-1", "response": false},
-            {"answer": "Answer 3-2", "response": false},
-            {"answer": "Answer 3-3", "response": true},
-            {"answer": "Answer 3-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 4",
-          "answers": [
-            {"answer": "Answer 4-1", "response": false},
-            {"answer": "Answer 4-2", "response": false},
-            {"answer": "Answer 4-3", "response": false},
-            {"answer": "Answer 4-4", "response": true},
-          ]
-        },
-        {
-          "question": "Question 5",
-          "answers": [
-            {"answer": "Answer 5-1", "response": true},
-            {"answer": "Answer 5-2", "response": false},
-            {"answer": "Answer 5-3", "response": false},
-            {"answer": "Answer 5-4", "response": false},
-          ]
-        }
-      ]
-    },
-    {
-      "math": [
-        {
-          "question": "Question 1",
-          "answers": [
-            {"answer": "Answer 1-1", "response": true},
-            {"answer": "Answer 1-2", "response": false},
-            {"answer": "Answer 1-3", "response": false},
-            {"answer": "Answer 1-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 2",
-          "answers": [
-            {"answer": "Answer 2-1", "response": false},
-            {"answer": "Answer 2-2", "response": true},
-            {"answer": "Answer 2-3", "response": false},
-            {"answer": "Answer 2-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 3",
-          "answers": [
-            {"answer": "Answer 3-1", "response": false},
-            {"answer": "Answer 3-2", "response": false},
-            {"answer": "Answer 3-3", "response": true},
-            {"answer": "Answer 3-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 4",
-          "answers": [
-            {"answer": "Answer 4-1", "response": false},
-            {"answer": "Answer 4-2", "response": false},
-            {"answer": "Answer 4-3", "response": false},
-            {"answer": "Answer 4-4", "response": true},
-          ]
-        },
-        {
-          "question": "Question 5",
-          "answers": [
-            {"answer": "Answer 5-1", "response": true},
-            {"answer": "Answer 5-2", "response": false},
-            {"answer": "Answer 5-3", "response": false},
-            {"answer": "Answer 5-4", "response": false},
-          ]
-        }
-      ]
-    },
-    {
-      "religion": [
-        {
-          "question": "Question 1",
-          "answers": [
-            {"answer": "Answer 1-1", "response": true},
-            {"answer": "Answer 1-2", "response": false},
-            {"answer": "Answer 1-3", "response": false},
-            {"answer": "Answer 1-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 2",
-          "answers": [
-            {"answer": "Answer 2-1", "response": false},
-            {"answer": "Answer 2-2", "response": true},
-            {"answer": "Answer 2-3", "response": false},
-            {"answer": "Answer 2-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 3",
-          "answers": [
-            {"answer": "Answer 3-1", "response": false},
-            {"answer": "Answer 3-2", "response": false},
-            {"answer": "Answer 3-3", "response": true},
-            {"answer": "Answer 3-4", "response": false},
-          ]
-        },
-        {
-          "question": "Question 4",
-          "answers": [
-            {"answer": "Answer 4-1", "response": false},
-            {"answer": "Answer 4-2", "response": false},
-            {"answer": "Answer 4-3", "response": false},
-            {"answer": "Answer 4-4", "response": true},
-          ]
-        },
-        {
-          "question": "Question 5",
-          "answers": [
-            {"answer": "Answer 5-1", "response": true},
-            {"answer": "Answer 5-2", "response": false},
-            {"answer": "Answer 5-3", "response": false},
-            {"answer": "Answer 5-4", "response": false},
-          ]
-        }
-      ]
-    }
-  ];
+  CategoriesModel categories;
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
 
-    args = ModalRoute.of(context).settings.arguments;
+    //categories[args.index][args.category][countQuestions]["question"]
 
-    if (countQuestions < 5) {
-      answers =
-          (categories[args.index][args.category][countQuestions]["answers"]);
+    args = ModalRoute.of(context).settings.arguments;
+    //print('Categories2'+categories[args.index]);
+    categories= args.categories;
+    /*print("Pregunta:"+categories.listQuestionAndAnswers.elementAt(countQuestions).question);
+    print("Respuesta:"+categories.listQuestionAndAnswers.elementAt(countQuestions).listAnswer.elementAt(0).answer);
+    print("Buena:"+categories.listQuestionAndAnswers.elementAt(countQuestions).listAnswer.elementAt(0).response.toString());*/
+    print("length:"+categories.listQuestionAndAnswers.length.toString());
+
+
+    if (countQuestions < categories.listQuestionAndAnswers.length) {
+      answers = categories.listQuestionAndAnswers.elementAt(countQuestions).listAnswer;
     }
 
     return MaterialApp(
         title: "Quiz!!!",
         theme: themeData(),
-        home: countQuestions < categories[args.index][args.category].length
+        home: countQuestions < categories.listQuestionAndAnswers.length
             ? bodyQuiz(context)
             : bodyScore(context));
   }
@@ -358,7 +75,7 @@ class _Quizstate extends State<Quiz> {
         primarySwatch: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       );
-    } else if (args.category.toLowerCase() == "spanish") {
+    } else if (args.category.toLowerCase() == "history") {
       return ThemeData(
         primarySwatch: Colors.green,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -435,8 +152,7 @@ class _Quizstate extends State<Quiz> {
                         padding: EdgeInsets.all(5.0),
                         child: Center(
                           child: Text(
-                            categories[args.index][args.category]
-                                [countQuestions]["question"],
+                            categories.listQuestionAndAnswers.elementAt(countQuestions).question,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 22),
                           ),
@@ -450,14 +166,14 @@ class _Quizstate extends State<Quiz> {
                       height: 100,
                       child: RaisedButton(
                         child: Text(
-                          answers[0]["answer"],
+                          answers.elementAt(0).answer,
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 22),
                         ),
                         color: Colors.green,
                         onPressed: () {
                           setState(() {
-                            if (answers[0]["response"] == true) {
+                            if (answers.elementAt(0).response == true) {
                               Toast.show("CORRECT", context,
                                   duration: Toast.LENGTH_SHORT,
                                   gravity: Toast.BOTTOM);
@@ -476,14 +192,14 @@ class _Quizstate extends State<Quiz> {
                       color: Colors.red,
                       child: RaisedButton(
                         child: Text(
-                          answers[1]["answer"],
+                            answers.elementAt(1).answer,
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 22),
                         ),
                         color: Colors.red,
                         onPressed: () {
                           setState(() {
-                            if (answers[1]["response"] == true) {
+                            if (answers.elementAt(1).response == true) {
                               Toast.show("CORRECT", context,
                                   duration: Toast.LENGTH_SHORT,
                                   gravity: Toast.BOTTOM);
@@ -506,14 +222,14 @@ class _Quizstate extends State<Quiz> {
                       color: Colors.green,
                       child: RaisedButton(
                         child: Text(
-                          answers[2]["answer"],
+                          answers.elementAt(2).answer,
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 22),
                         ),
                         color: Colors.blue,
                         onPressed: () {
                           setState(() {
-                            if (answers[2]["response"] == true) {
+                            if (answers.elementAt(2).response == true) {
                               Toast.show("CORRECT", context,
                                   duration: Toast.LENGTH_SHORT,
                                   gravity: Toast.BOTTOM);
@@ -532,14 +248,14 @@ class _Quizstate extends State<Quiz> {
                       color: Colors.red,
                       child: RaisedButton(
                         child: Text(
-                          answers[3]["answer"],
+                          answers.elementAt(3).answer,
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 22),
                         ),
                         color: Colors.orange,
                         onPressed: () {
                           setState(() {
-                            if (answers[3]["response"] == true) {
+                            if (answers.elementAt(3).response == true) {
                               Toast.show("CORRECT", context,
                                   duration: Toast.LENGTH_SHORT,
                                   gravity: Toast.BOTTOM);
@@ -591,6 +307,10 @@ class _Quizstate extends State<Quiz> {
     service = new QuizService();
     service.findQuestionByCategoryId(1);
     database = new DatabaseQuiz();
+    userService = new UserService();
+    //categories= [userService.question()];
+
+    //print('Categories2:'+categories.toString());
   }
 
   @override

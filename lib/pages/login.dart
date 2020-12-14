@@ -1,4 +1,5 @@
 import 'package:app_quiz/pages/user_register.dart';
+import 'package:app_quiz/services/questions.dart';
 import 'package:app_quiz/services/user_service.dart';
 import 'package:app_quiz/singleton.dart';
 import 'package:app_quiz/sqlite/DatabaseQuiz.dart';
@@ -131,6 +132,17 @@ class _LoginState extends State<Login> {
       Toast.show("Fill The Password Field", context,
           duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
     } else {
+      //print('Categories'+service.question().toString());
+      print("PruebaJsonnnnnnn");
+      //print(service.question());
+      //var categories=[service.question()];
+      /*service.question("science").then((value){
+        if(value !=null){
+          print("Pregunta:"+value.listQuestionAndAnswers.elementAt(1).question);
+          print("Respuesta:"+value.listQuestionAndAnswers.elementAt(1).listAnswer.elementAt(0).answer);
+          print("Buena:"+value.listQuestionAndAnswers.elementAt(1).listAnswer.elementAt(0).response.toString());
+        }
+      });*/
       service.login(ctrEmail.text, ctrPassword.text).then((value) {
         if (value != null) {
           Singleton.getInstance().userModel = value;

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:toast/toast.dart';
 
+import '../singleton.dart';
+
 class UserRegister extends StatefulWidget {
   @override
   _UserUserRegisterState createState() => _UserUserRegisterState();
@@ -98,7 +100,15 @@ class _UserUserRegisterState extends State<UserRegister> {
       print('Register:' + userModel.toJson().toString());
       service.register(userModel).then((value) {
         if (value != null) {
-          Navigator.of(context).pushNamed("/categories");
+          service.login(ctrEmail.text, ctrPassword.text).then((value) {
+            if (value != null) {
+              Singleton.getInstance().userModel = value;
+              Navigator.of(context).pushNamed("/categories");
+            } else {
+              Navigator.of(context).pushNamed("/user_register");
+            }
+          });
+          //Navigator.of(context).pushNamed("/categories");
         } else {
           Toast.show("Register Fail!!!", context,
               duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);

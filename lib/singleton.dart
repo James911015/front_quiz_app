@@ -5,6 +5,7 @@ class Singleton {
   static Singleton _instance;
 
   UserModel _userModel;
+  var categories;
 
   static void initInstance() {
     if (_instance == null) {
